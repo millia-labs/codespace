@@ -1,0 +1,39 @@
+name: toolchain-smoke
+
+# A small sample workflow with a few independent jobs, so `act` has something
+# realistic to run locally inside the codespace:
+#     act -l                 # list the jobs below
+#     act -j python          # run just the uv/python job
+#     act push                # run everything on the default `push` event
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v4
+      - run: uv --version
+
+  node:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 8
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: node --version && pnpm --version
+
+  flutter:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.41.4
+      - run: flutter --version

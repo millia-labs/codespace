@@ -1,0 +1,38 @@
+name: build
+
+# Builds the codespace base image (Dockerfile) and publishes it to GHCR as a
+# prebuilt base others can reuse. The image bakes no external features, so this
+# is self-contained. Pushes only happen on main; pull requests build without
+# pushing.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  IMAGE: ghcr.io/millia-labs/codespace
+
+jobs:
+  base-image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        if: github.event_name != 'pull_request'
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      - name: Build
+        run: docker build -t "$IMAGE:latest" -t "$IMAGE:${{ github.sha }}" -f Dockerfile .
+
+      - name: Push
+        if: github.event_name != 'pull_request'
+        run: docker push --all-tags "$IMAGE"
+
+      - name: Summary
+        run: docker image ls "$IMAGE"

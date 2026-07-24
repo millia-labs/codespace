@@ -1,0 +1,47 @@
+{
+  "name": "Millia devcontainer sandbox",
+  // Bare-minimum environment whose only job is to exercise Millia's dev-tooling:
+  //   - run GitHub Actions workflows locally with `act`
+  //   - build/test container images (docker-in-docker daemon; podman also works)
+  // The actual toolchains (Flutter, Node/pnpm, uv, …) live as composable features
+  // in millia-labs/devcontainer and are layered on wherever they're needed — not here.
+  // Built from a minimal base image (../Dockerfile) so the same foundation works bare
+  // or with extra features stacked on top.
+  "build": {
+    "dockerfile": "../Dockerfile",
+    "context": ".."
+  },
+  "features": {
+    // Real Docker daemon inside the container: the "docker builder" + act's backend.
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {
+      "moby": true,
+      "version": "latest"
+    },
+    // Run GitHub Actions workflows locally. Seeds ~/.actrc so the first run never prompts.
+    "ghcr.io/millia-labs/devcontainer/act:1": {
+      "version": "latest",
+      "defaultImage": "catthehacker/ubuntu:act-22.04"
+    }
+  },
+  "overrideFeatureInstallOrder": [
+    "ghcr.io/devcontainers/features/docker-in-docker",
+    "ghcr.io/millia-labs/devcontainer/act"
+  ],
+  "remoteUser": "vscode",
+  "postCreateCommand": "bash .devcontainer/verify.sh",
+  "hostRequirements": {
+    "cpus": 2,
+    "memory": "4gb",
+    "storage": "32gb"
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "github.vscode-github-actions"
+      ]
+    },
+    "codespaces": {
+      "openFiles": ["README.md"]
+    }
+  }
+}
